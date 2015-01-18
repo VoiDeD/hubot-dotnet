@@ -1,0 +1,16 @@
+{
+  "name": "hubot-dotnet",
+  "version": "0.1.0",
+  "description": "Hubot .NET adapter",
+  "main": "index.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "hubot",
+    ".net",
+    "c#"
+  ],
+  "author": "Ryan Stecker <ryan@stecker.email>",
+  "license": "MIT"
+}
