@@ -24,7 +24,7 @@ namespace HubotNET
         readonly AsyncLock writeLock = new AsyncLock();
 
 
-        public event EventHandler OnDisconnected;
+        public event EventHandler<DisconnectEventArgs> OnDisconnected;
 
         public event EventHandler<MessageEventArgs> OnChat;
         public event EventHandler<MessageEventArgs> OnEmote;
@@ -116,9 +116,21 @@ namespace HubotNET
                     // now the payload
                     payload = await binReader.ReadBytesAsync( packetLen );
                 }
-                catch ( IOException )
+                catch ( IOException ex )
                 {
-                    OnDisconnected.Raise( this, EventArgs.Empty );
+                    var sockEx = ex.InnerException as SocketException;
+
+                    if ( sockEx != null )
+                    {
+                        // if we failed due to a socket error, provide the error code
+                        OnDisconnected.Raise( this, new DisconnectEventArgs( sockEx.SocketErrorCode ) );
+                    }
+                    else
+                    {
+                        // otherwise, likely some protocol error (bad length, etc)
+                        OnDisconnected.Raise( this, new DisconnectEventArgs() );
+                    }
+
                     break;
                 }
 
@@ -164,7 +176,9 @@ namespace HubotNET
             }
             catch ( IOException )
             {
-                // todo: handle corrupt packet
+                client.Close();
+                OnDisconnected.Raise( this, new DisconnectEventArgs() );
+
                 return;
             }
 
@@ -188,7 +202,9 @@ namespace HubotNET
             }
             catch ( IOException )
             {
-                // todo: handle corrupt packet
+                client.Close();
+                OnDisconnected.Raise( this, new DisconnectEventArgs() );
+
                 return;
             }
 
