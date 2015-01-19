@@ -12,6 +12,9 @@ using Nito.AsyncEx;
 
 namespace HubotNET
 {
+    /// <summary>
+    /// Represents the client portion of Hubot.NET that will connect to the server listening in the Hubot adapter.
+    /// </summary>
     public sealed class HubotClient
     {
         TcpClient client;
@@ -24,13 +27,32 @@ namespace HubotNET
         readonly AsyncLock writeLock = new AsyncLock();
 
 
+        /// <summary>
+        /// Occurs when this HubotClient instance is disconnected from the Hubot adapter.
+        /// This event will only fire if the instance had successfully connected to the adapter.
+        /// </summary>
         public event EventHandler<DisconnectEventArgs> Disconnected;
 
+        /// <summary>
+        /// Occurs when Hubot wishes to send chat to the chatroom.
+        /// </summary>
         public event EventHandler<MessageEventArgs> Chat;
+        /// <summary>
+        /// Occurs when Hubot wishes to send an emote to the chatroom.
+        /// </summary>
         public event EventHandler<MessageEventArgs> Emote;
+        /// <summary>
+        /// Occurs when Hubot wishes to set the topic of the chatroom.
+        /// </summary>
         public event EventHandler<TopicEventArgs> Topic;
 
 
+        /// <summary>
+        /// Connects the client to the adapter specified by the host and port.
+        /// </summary>
+        /// <param name="host">The hostname of the adapter to connect to.</param>
+        /// <param name="port">The port of the adapter to connect to.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         public async Task Connect( string host, int port )
         {
             // TcpClient instances can't be re-used, so we create a new one for every connect attempt
@@ -48,31 +70,63 @@ namespace HubotNET
             var fireAndForget = Read();
         }
 
+        /// <summary>
+        /// Disconnects this instance from the Hubot adapter.
+        /// </summary>
         public void Disconnect()
         {
             client.Close();
         }
 
 
+        /// <summary>
+        /// Sends a user's chat to the Hubot adapter.
+        /// </summary>
+        /// <param name="user">The user that sent the chat message.</param>
+        /// <param name="message">The chat message.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendChat( string user, string message )
         {
             return SendPayload( PacketType.Chat, user, message );
         }
+        /// <summary>
+        /// Sends a user's emote to the Hubot adapter.
+        /// Note that, as of writing, Hubot doesn't currently implement receiving emotes, so this operation is a no-op for now.
+        /// </summary>
+        /// <param name="user">The user that sent the emote.</param>
+        /// <param name="message">The emote message.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendEmote( string user, string message )
         {
             // NB! hubot doesn't currently support this, so the adapter will need updating when it does
             return SendPayload( PacketType.Emote, user, message );
         }
 
+        /// <summary>
+        /// Sends a notification that a user entered the chat to the Hubot adapter.
+        /// </summary>
+        /// <param name="user">The user that entered the chat.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendEnter( string user )
         {
             return SendPayload( PacketType.Enter, user );
         }
+        /// <summary>
+        /// Sends a notification that a user left the chat to the Hubot adapter.
+        /// </summary>
+        /// <param name="user">The user that left the chat.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendLeave( string user )
         {
             return SendPayload( PacketType.Leave, user );
         }
 
+        /// <summary>
+        /// Sends a notification that a user changed the chat topic to the Hubot adapter.
+        /// </summary>
+        /// <param name="user">The user that changed the topic.</param>
+        /// <param name="topic">The new topic that was set by the user.</param>
+        /// <returns>The task object representing the asynchronous operation.</returns>
         public Task SendTopic( string user, string topic )
         {
             return SendPayload( PacketType.Topic, user, topic );
