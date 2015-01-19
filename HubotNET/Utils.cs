@@ -51,5 +51,13 @@ namespace HubotNET
             writer.Write( bytes.Length );
             writer.Write( bytes );
         }
+
+        public static string ReadSafeString( this BinaryReader reader )
+        {
+            int byteCount = reader.ReadInt32();
+            byte[] bytes = reader.ReadBytes( byteCount );
+
+            return Encoding.UTF8.GetString( bytes );
+        }
     }
 }

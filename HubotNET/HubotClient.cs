@@ -102,8 +102,48 @@ namespace HubotNET
                 int packetLen = await binReader.ReadInt32Async();
                 byte[] payload = await binReader.ReadBytesAsync( packetLen );
 
-                // todo: process the payload
+                ReadPayload( payload );
             }
+        }
+
+        void ReadPayload( byte[] payload )
+        {
+            var dispatch = new Dictionary<PacketType, Action<BinaryReader>>
+            {
+                { PacketType.Chat, br => ReadChat( br, false ) },
+                { PacketType.Emote, br => ReadChat( br, true ) },
+                { PacketType.Topic, ReadTopic },
+
+                // todo: play, run, close?
+            };
+
+            using ( var ms = new MemoryStream( payload ) )
+            using ( var br = new BinaryReader( ms ) )
+            {
+                PacketType type = (PacketType)br.ReadByte();
+
+                Action<BinaryReader> readerFunc;
+                if ( !dispatch.TryGetValue( type, out readerFunc ) )
+                {
+                    // todo: unknown message type, handle this?
+                    return;
+                }
+
+                // dispatch to the associated reader
+                readerFunc( br );
+            }
+        }
+
+        void ReadChat( BinaryReader reader, bool isEmote )
+        {
+            string message = reader.ReadSafeString();
+
+            // todo: events or some sort of notification back to the consumer
+        }
+
+        void ReadTopic( BinaryReader reader )
+        {
+            string topic = reader.ReadSafeString();
         }
     }
 
