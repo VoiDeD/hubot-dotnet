@@ -48,6 +48,11 @@ namespace HubotNET
             var fireAndForget = Read();
         }
 
+        public void Disconnect()
+        {
+            client.Close();
+        }
+
 
         public Task SendChat( string user, string message )
         {
