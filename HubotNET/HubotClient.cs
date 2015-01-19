@@ -41,8 +41,12 @@ namespace HubotNET
             return SendPayload( PacketType.Chat, sender, message );
         }
 
+
+        [SuppressMessage( "Microsoft.Usage", "CA2202:Do not dispose objects multiple times" )]
         Task SendPayload( PacketType type, params string[] data )
         {
+            byte[] payload;
+
             using ( var ms = new MemoryStream() )
             using ( var bw = new BinaryWriter( ms ) )
             {
@@ -58,19 +62,19 @@ namespace HubotNET
                     bw.WriteSafeString( param );
                 }
 
-                byte[] payload = ms.ToArray();
-
-                // now send the payload over the wire
-
-                // todo: currently this is done serially to avoid any races
-                // this should eventually be changed to an async write
-                // but for now we're relying on the tcp stack to not block on a full send buffer
-
-                binWriter.Write( payload.Length );
-                binWriter.Write( payload );
-
-                return Task.FromResult( true );
+                payload = ms.ToArray();
             }
+
+            // now send the payload over the wire
+
+            // todo: currently this is done serially to avoid any races
+            // this should eventually be changed to an async write
+            // but for now we're relying on the tcp stack to not block on a full send buffer
+
+            binWriter.Write( payload.Length );
+            binWriter.Write( payload );
+
+            return Task.FromResult( true );
         }
 
 
