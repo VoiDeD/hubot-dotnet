@@ -15,6 +15,18 @@ BufferCursor::writeString = (string) ->
   @write string, len, 'utf8'
 
 
+PacketType =
+  Invalid: 0
+
+  Chat: 1
+  Emote: 2
+
+  Enter: 3
+  Leave: 4
+
+  Topic: 5
+
+
 class DotNetServer extends EventEmitter
 
 
@@ -27,6 +39,11 @@ class DotNetServer extends EventEmitter
     @server.listen @port
 
     console.log 'listening on ', @port
+
+  stop: ->
+    console.log 'stopping server'
+
+    @server.close()
 
 
   sendChat: (client, message) ->
@@ -113,9 +130,11 @@ class DotNetServer extends EventEmitter
     data = payload.slice()
 
     switch type
-      when 1 then @handleChat data, client
-      when 2 then @handleEmote data, client
-      when 5 then @handleTopic data, client
+      when PacketType.Chat then @handleChat data, client
+      when PacketType.Emote then @handleEmote data, client
+      when PacketType.Enter then @handleEnter data, client
+      when PacketType.Leave then @handleLeave data, client
+      when PacketType.Topic then @handleTopic data, client
 
 
   handleChat: (data, client) ->
@@ -130,10 +149,21 @@ class DotNetServer extends EventEmitter
 
       @emit 'emote', user, message, client
 
+  handleEnter: (data, client) ->
+      user = data.readString()
+
+      @emit 'enter', user, client
+
+  handleLeave: (data, client) ->
+      user = data.readString()
+
+      @emit 'leave', user, client
+
   handleTopic: (data, client) ->
+      user = data.readString()
       topic = data.readString()
 
-      @emit 'topic', topic, client
+      @emit 'topic', user, topic, client
 
 
 module.exports = DotNetServer
