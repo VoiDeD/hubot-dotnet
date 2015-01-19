@@ -7,6 +7,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Nito.AsyncEx;
 
 namespace HubotNET
 {
@@ -18,6 +19,8 @@ namespace HubotNET
 
         BinaryReader binReader;
         BinaryWriter binWriter;
+
+        readonly AsyncLock writeLock = new AsyncLock();
 
 
         public async Task Connect( string host, int port )
@@ -59,7 +62,7 @@ namespace HubotNET
 
 
         [SuppressMessage( "Microsoft.Usage", "CA2202:Do not dispose objects multiple times" )]
-        Task SendPayload( PacketType type, params string[] data )
+        async Task SendPayload( PacketType type, params string[] data )
         {
             byte[] payload;
 
@@ -83,14 +86,11 @@ namespace HubotNET
 
             // now send the payload over the wire
 
-            // todo: currently this is done serially to avoid any races
-            // this should eventually be changed to an async write
-            // but for now we're relying on the tcp stack to not block on a full send buffer
-
-            binWriter.Write( payload.Length );
-            binWriter.Write( payload );
-
-            return Task.FromResult( true );
+            using ( await writeLock.LockAsync() )
+            {
+                binWriter.Write( payload.Length );
+                binWriter.Write( payload );
+            }
         }
 
 
