@@ -2,15 +2,32 @@
   "name": "hubot-dotnet",
   "version": "0.1.0",
   "description": "Hubot .NET adapter",
-  "main": "index.coffee",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "homepage": "https://github.com/VoiDeD/hubot-dotnet",
   "keywords": [
     "hubot",
     ".net",
     "c#"
   ],
-  "author": "Ryan Stecker <ryan@stecker.email>",
-  "license": "MIT"
+  "author": {
+	"name": "Ryan Stecker",
+	"email": "ryan@stecker.email"
+  },
+  "main": "index.coffee",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VoiDeD/hubot-dotnet.git"
+  },
+  "bugs": {
+    "url": "https://github.com/VoiDeD/hubot-dotnet/issues"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "buffercursor": "0.0.12"
+  },
+  "peerDependencies": {
+    "hubot": "2.x"
+  }
 }
