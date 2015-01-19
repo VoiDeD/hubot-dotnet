@@ -60,4 +60,14 @@ namespace HubotNET
             return Encoding.UTF8.GetString( bytes );
         }
     }
+
+    static class EventExtensions
+    {
+        public static void Raise<T>(this EventHandler<T> handler, object sender, T e )
+        {
+            if ( handler != null )
+                handler( sender, e );
+        }
+
+    }
 }

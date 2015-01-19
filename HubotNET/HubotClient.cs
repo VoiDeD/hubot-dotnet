@@ -23,6 +23,11 @@ namespace HubotNET
         readonly AsyncLock writeLock = new AsyncLock();
 
 
+        public event EventHandler<MessageEventArgs> OnChat;
+        public event EventHandler<MessageEventArgs> OnEmote;
+        public event EventHandler<TopicEventArgs> OnTopic;
+
+
         public async Task Connect( string host, int port )
         {
             // TcpClient instances can't be re-used, so we create a new one for every connect attempt
@@ -138,25 +143,21 @@ namespace HubotNET
         {
             string message = reader.ReadSafeString();
 
-            // todo: events or some sort of notification back to the consumer
+            if ( isEmote )
+            {
+                OnEmote.Raise( this, new MessageEventArgs( message ) );
+            }
+            else
+            {
+                OnChat.Raise( this, new MessageEventArgs( message ) );
+            }
         }
 
         void ReadTopic( BinaryReader reader )
         {
             string topic = reader.ReadSafeString();
+
+            OnTopic.Raise( this, new TopicEventArgs( topic ) );
         }
-    }
-
-    enum PacketType
-    {
-        Invalid = 0,
-
-        Chat,
-        Emote,
-
-        Enter,
-        Leave,
-
-        Topic
     }
 }
