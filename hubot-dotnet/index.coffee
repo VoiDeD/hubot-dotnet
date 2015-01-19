@@ -1,10 +1,13 @@
 {Robot, Adapter, TextMessage, EnterMessage, LeaveMessage, Response} = require 'hubot'
 
-DotNetServer = require './dotnet'
+DotNetServer = require './server'
 
 
 class DotNet extends Adapter
 
+  constructor: ->
+    @port = process.env.HUBOT_DOTNET_PORT || 8880
+  
   send: (envelope, strings...) ->
     @server.sendChat envelope.message.client, str for str in strings
 
@@ -16,7 +19,7 @@ class DotNet extends Adapter
 
 
   run: ->
-    @server = new DotNetServer 8880
+    @server = new DotNetServer @port
 
     @server.on 'chat', (user, message, client) =>
       console.log user, ':', message
