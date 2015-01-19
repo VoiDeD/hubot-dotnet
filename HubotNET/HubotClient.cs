@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -36,9 +37,19 @@ namespace HubotNET
             var fireAndForget = Read();
         }
 
-        public Task SendChat( string sender, string message )
+
+        public Task SendChat( string user, string message )
         {
-            return SendPayload( PacketType.Chat, sender, message );
+            return SendPayload( PacketType.Chat, user, message );
+        }
+
+        public Task SendEnter( string user )
+        {
+            return SendPayload( PacketType.Enter, user );
+        }
+        public Task SendLeave( string user )
+        {
+            return SendPayload( PacketType.Leave, user );
         }
 
 
@@ -97,6 +108,10 @@ namespace HubotNET
 
         Chat,
         Emote,
+
+        Enter,
+        Leave,
+
         Topic
     }
 }
