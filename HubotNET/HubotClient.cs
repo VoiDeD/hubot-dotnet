@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
@@ -22,6 +23,8 @@ namespace HubotNET
 
         readonly AsyncLock writeLock = new AsyncLock();
 
+
+        public event EventHandler OnDisconnected;
 
         public event EventHandler<MessageEventArgs> OnChat;
         public event EventHandler<MessageEventArgs> OnEmote;
@@ -93,6 +96,7 @@ namespace HubotNET
 
             using ( await writeLock.LockAsync() )
             {
+                // these are synchronous, but the await will hoist this into a continuation
                 binWriter.Write( payload.Length );
                 binWriter.Write( payload );
             }
@@ -103,9 +107,20 @@ namespace HubotNET
         {
             while ( true )
             {
-                // read packet length off the stream
-                int packetLen = await binReader.ReadInt32Async();
-                byte[] payload = await binReader.ReadBytesAsync( packetLen );
+                byte[] payload = null;
+
+                try
+                {
+                    // read packet length off the stream
+                    int packetLen = await binReader.ReadInt32Async();
+                    // now the payload
+                    payload = await binReader.ReadBytesAsync( packetLen );
+                }
+                catch ( IOException )
+                {
+                    OnDisconnected.Raise( this, EventArgs.Empty );
+                    break;
+                }
 
                 ReadPayload( payload );
             }
@@ -130,7 +145,7 @@ namespace HubotNET
                 Action<BinaryReader> readerFunc;
                 if ( !dispatch.TryGetValue( type, out readerFunc ) )
                 {
-                    // todo: unknown message type, handle this?
+                    Debug.Assert( false, "Received an unknown packet type from the hubot server" );
                     return;
                 }
 
@@ -141,7 +156,17 @@ namespace HubotNET
 
         void ReadChat( BinaryReader reader, bool isEmote )
         {
-            string message = reader.ReadSafeString();
+            string message = null;
+
+            try
+            {
+                message = reader.ReadSafeString();
+            }
+            catch ( IOException )
+            {
+                // todo: handle corrupt packet
+                return;
+            }
 
             if ( isEmote )
             {
@@ -155,7 +180,17 @@ namespace HubotNET
 
         void ReadTopic( BinaryReader reader )
         {
-            string topic = reader.ReadSafeString();
+            string topic = null;
+
+            try
+            {
+                topic = reader.ReadSafeString();
+            }
+            catch ( IOException )
+            {
+                // todo: handle corrupt packet
+                return;
+            }
 
             OnTopic.Raise( this, new TopicEventArgs( topic ) );
         }
