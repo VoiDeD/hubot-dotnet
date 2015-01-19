@@ -24,11 +24,11 @@ namespace HubotNET
         readonly AsyncLock writeLock = new AsyncLock();
 
 
-        public event EventHandler<DisconnectEventArgs> OnDisconnected;
+        public event EventHandler<DisconnectEventArgs> Disconnected;
 
-        public event EventHandler<MessageEventArgs> OnChat;
-        public event EventHandler<MessageEventArgs> OnEmote;
-        public event EventHandler<TopicEventArgs> OnTopic;
+        public event EventHandler<MessageEventArgs> Chat;
+        public event EventHandler<MessageEventArgs> Emote;
+        public event EventHandler<TopicEventArgs> Topic;
 
 
         public async Task Connect( string host, int port )
@@ -123,12 +123,12 @@ namespace HubotNET
                     if ( sockEx != null )
                     {
                         // if we failed due to a socket error, provide the error code
-                        OnDisconnected.Raise( this, new DisconnectEventArgs( sockEx.SocketErrorCode ) );
+                        Disconnected.Raise( this, new DisconnectEventArgs( sockEx.SocketErrorCode ) );
                     }
                     else
                     {
                         // otherwise, likely some protocol error (bad length, etc)
-                        OnDisconnected.Raise( this, new DisconnectEventArgs() );
+                        Disconnected.Raise( this, new DisconnectEventArgs() );
                     }
 
                     break;
@@ -138,6 +138,7 @@ namespace HubotNET
             }
         }
 
+        [SuppressMessage( "Microsoft.Usage", "CA2202:Do not dispose objects multiple times" )]
         void ReadPayload( byte[] payload )
         {
             var dispatch = new Dictionary<PacketType, Action<BinaryReader>>
@@ -177,18 +178,18 @@ namespace HubotNET
             catch ( IOException )
             {
                 client.Close();
-                OnDisconnected.Raise( this, new DisconnectEventArgs() );
+                Disconnected.Raise( this, new DisconnectEventArgs() );
 
                 return;
             }
 
             if ( isEmote )
             {
-                OnEmote.Raise( this, new MessageEventArgs( message ) );
+                Emote.Raise( this, new MessageEventArgs( message ) );
             }
             else
             {
-                OnChat.Raise( this, new MessageEventArgs( message ) );
+                Chat.Raise( this, new MessageEventArgs( message ) );
             }
         }
 
@@ -203,12 +204,12 @@ namespace HubotNET
             catch ( IOException )
             {
                 client.Close();
-                OnDisconnected.Raise( this, new DisconnectEventArgs() );
+                Disconnected.Raise( this, new DisconnectEventArgs() );
 
                 return;
             }
 
-            OnTopic.Raise( this, new TopicEventArgs( topic ) );
+            Topic.Raise( this, new TopicEventArgs( topic ) );
         }
     }
 }
