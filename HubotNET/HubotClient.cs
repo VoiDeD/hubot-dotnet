@@ -52,6 +52,11 @@ namespace HubotNET
             return SendPayload( PacketType.Leave, user );
         }
 
+        public Task SendTopic( string user, string topic )
+        {
+            return SendPayload( PacketType.Topic, user, topic );
+        }
+
 
         [SuppressMessage( "Microsoft.Usage", "CA2202:Do not dispose objects multiple times" )]
         Task SendPayload( PacketType type, params string[] data )
