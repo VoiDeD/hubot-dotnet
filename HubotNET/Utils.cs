@@ -57,6 +57,12 @@ namespace HubotNET
             int byteCount = reader.ReadInt32();
             byte[] bytes = reader.ReadBytes( byteCount );
 
+            if ( bytes.Length != byteCount )
+            {
+                // the read buffer didn't countain as many character bytes as expected, likely a protocol error issue somewhere
+                throw new IOException( "Mismatched read count in ReadSafeString!" );
+            }
+
             return Encoding.UTF8.GetString( bytes );
         }
     }

@@ -133,6 +133,12 @@ namespace HubotNET
 
                     break;
                 }
+                catch ( ObjectDisposedException )
+                {
+                    // this will get thrown on read attempts following us performing a disconnection.
+                    // since we've already fired the disconnected event in this case, we do nothing 
+                    break;
+                }
 
                 ReadPayload( payload );
             }
