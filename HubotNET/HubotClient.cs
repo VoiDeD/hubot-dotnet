@@ -58,6 +58,11 @@ namespace HubotNET
         {
             return SendPayload( PacketType.Chat, user, message );
         }
+        public Task SendEmote( string user, string message )
+        {
+            // NB! hubot doesn't currently support this, so the adapter will need updating when it does
+            return SendPayload( PacketType.Emote, user, message );
+        }
 
         public Task SendEnter( string user )
         {
@@ -158,7 +163,7 @@ namespace HubotNET
                 { PacketType.Emote, br => ReadChat( br, true ) },
                 { PacketType.Topic, ReadTopic },
 
-                // todo: play, run, close?
+                // todo: support playing sounds?
             };
 
             using ( var ms = new MemoryStream( payload ) )
